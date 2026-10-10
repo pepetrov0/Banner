@@ -14,22 +14,30 @@ local function BuildVariants(raid)
         v[#v + 1] = { key = code .. "10H", short = hcode and (hcode .. "10") or (code .. "10H"), label = "10-man Heroic" }
         v[#v + 1] = { key = code .. "25H", short = hcode and (hcode .. "25") or (code .. "25H"), label = "25-man Heroic" }
     end
+    for _, variant in ipairs(v) do
+        variant.bosses = raid.bosses
+    end
     return v
 end
 
+-- bosses = number of bosses, used for progress such as "ICC25 8/12"
 B.RAIDS = {
-    { name = "Icecrown Citadel",       code = "ICC",   heroic = true },
-    { name = "Ruby Sanctum",           code = "RS",    heroic = true },
-    { name = "Trial of the Crusader",  code = "ToC",   hcode = "ToGC", heroic = true },
-    { name = "Ulduar",                 code = "Uld" },
-    { name = "Naxxramas",              code = "Naxx" },
-    { name = "Eye of Eternity",        code = "EoE" },
-    { name = "Obsidian Sanctum",       code = "OS" },
-    { name = "Vault of Archavon",      code = "VoA" },
-    { name = "Onyxia's Lair",          code = "Ony" },
+    { name = "Icecrown Citadel",       code = "ICC",   bosses = 12, heroic = true },
+    { name = "Ruby Sanctum",           code = "RS",    bosses = 4,  heroic = true },
+    { name = "Trial of the Crusader",  code = "ToC",   bosses = 5,  hcode = "ToGC", heroic = true },
+    { name = "Ulduar",                 code = "Uld",   bosses = 14 },
+    { name = "Naxxramas",              code = "Naxx",  bosses = 15 },
+    { name = "Eye of Eternity",        code = "EoE",   bosses = 1 },
+    { name = "Obsidian Sanctum",       code = "OS",    bosses = 1 },
+    { name = "Vault of Archavon",      code = "VoA",   bosses = 4 },
+    { name = "Onyxia's Lair",          code = "Ony",   bosses = 1 },
 }
+B.VARIANTS = {}
 for _, raid in ipairs(B.RAIDS) do
     raid.variants = BuildVariants(raid)
+    for _, variant in ipairs(raid.variants) do
+        B.VARIANTS[variant.key] = variant
+    end
 end
 
 ------------------------------------------------------------------------

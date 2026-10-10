@@ -16,6 +16,7 @@ B.RESERVE_TYPES = { "SR", "HR", "Reserves" }
 
 local DEFAULTS = {
     instances   = {},     -- [variantKey] = true
+    progress    = {},     -- [variantKey] = bosses killed (nil = not specified)
     specs       = {},     -- [specKey]    = true
     channels    = {},     -- [lowercased channel base name] = display name
     minGS       = 0,
@@ -44,12 +45,21 @@ end
 ------------------------------------------------------------------------
 -- Selection helpers
 ------------------------------------------------------------------------
+-- "ICC25H" or, when progress is set, "ICC25H 8/12"
+function B:FormatInstance(v)
+    local p = tonumber(self.db.progress[v.key])
+    if p and v.bosses and v.bosses > 1 and p >= 0 and p <= v.bosses then
+        return format("%s %d/%d", v.short, p, v.bosses)
+    end
+    return v.short
+end
+
 function B:GetSelectedInstances()
     local out = {}
     for _, raid in ipairs(self.RAIDS) do
         for _, v in ipairs(raid.variants) do
             if self.db.instances[v.key] then
-                out[#out + 1] = v.short
+                out[#out + 1] = self:FormatInstance(v)
             end
         end
     end

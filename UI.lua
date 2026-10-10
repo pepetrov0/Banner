@@ -49,7 +49,7 @@ local function InstanceInit(a, b)
     if level == 1 then
         UIDropDownMenu_AddButton({
             text = "Clear all", notCheckable = 1,
-            func = function() wipe(db.instances); B:RefreshAll() end,
+            func = function() wipe(db.instances); wipe(db.progress); B:RefreshAll() end,
         }, level)
         for i, raid in ipairs(B.RAIDS) do
             UIDropDownMenu_AddButton({
@@ -69,6 +69,48 @@ local function InstanceInit(a, b)
                     db.instances[key] = (not db.instances[key]) or nil
                     B:UpdateTexts()
                 end,
+            }, level)
+        end
+    end
+end
+
+local function ProgressInit(a, b)
+    local level = MenuLevel(a, b)
+    local db = B.db
+    if level == 1 then
+        local any = false
+        for _, raid in ipairs(B.RAIDS) do
+            for _, v in ipairs(raid.variants) do
+                if db.instances[v.key] and (v.bosses or 0) > 1 then
+                    any = true
+                    local p = db.progress[v.key]
+                    UIDropDownMenu_AddButton({
+                        text = p and format("%s  (%d/%d)", v.short, p, v.bosses) or v.short,
+                        hasArrow = 1, notCheckable = 1, value = v.key,
+                    }, level)
+                end
+            end
+        end
+        if not any then
+            UIDropDownMenu_AddButton({
+                text = "Select instances first", isTitle = 1, notCheckable = 1,
+            }, level)
+        end
+    else
+        local key = UIDROPDOWNMENU_MENU_VALUE
+        local v = B.VARIANTS[key]
+        if not v then return end
+        UIDropDownMenu_AddButton({
+            text = "Not specified",
+            checked = (db.progress[key] == nil) and 1 or nil,
+            func = function() db.progress[key] = nil; B:RefreshAll() end,
+        }, level)
+        for n = 1, v.bosses do
+            local count = n
+            UIDropDownMenu_AddButton({
+                text = format("%d/%d bosses", count, v.bosses),
+                checked = (db.progress[key] == count) and 1 or nil,
+                func = function() db.progress[key] = count; B:RefreshAll() end,
             }, level)
         end
     end
@@ -199,7 +241,7 @@ function B:CreateUI()
 
     local f = CreateFrame("Frame", "BannerFrame", UIParent)
     f:SetWidth(400)
-    f:SetHeight(540)
+    f:SetHeight(576)
     f:SetPoint("CENTER")
     f:SetFrameStrata("DIALOG")
     f:SetMovable(true)
@@ -240,30 +282,31 @@ function B:CreateUI()
         return dd
     end
     self.ddInst = MakeDropdown("Instances", -40,  InstanceInit)
-    self.ddSpec = MakeDropdown("Specs",     -76,  SpecInit)
-    self.ddChan = MakeDropdown("Channels",  -112, ChannelInit)
+    self.ddProg = MakeDropdown("Progress",  -76,  ProgressInit)
+    self.ddSpec = MakeDropdown("Specs",     -112, SpecInit)
+    self.ddChan = MakeDropdown("Channels",  -148, ChannelInit)
 
     -- Min GearScore / stop size ---------------------------------------------
-    MakeLabel(f, "Min GS", 24, -162)
-    self.gsBox = MakeEdit(f, 90, -158, 60, true)
+    MakeLabel(f, "Min GS", 24, -198)
+    self.gsBox = MakeEdit(f, 90, -194, 60, true)
     self.gsBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.minGS = tonumber(e:GetText()) or 0
         B:UpdateTexts()
     end)
 
-    MakeLabel(f, "Stop at size", 180, -162)
-    self.stopBox = MakeEdit(f, 268, -158, 40, true)
+    MakeLabel(f, "Stop at size", 180, -198)
+    self.stopBox = MakeEdit(f, 268, -194, 40, true)
     self.stopBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.stopAt = tonumber(e:GetText()) or 0
     end)
-    MakeLabel(f, "(0 = off)", 316, -162, "GameFontHighlightSmall")
+    MakeLabel(f, "(0 = off)", 316, -198, "GameFontHighlightSmall")
 
     -- Reservations ------------------------------------------------------------
-    MakeLabel(f, "Item reservations", 24, -190)
+    MakeLabel(f, "Item reservations", 24, -226)
     local typeBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
-    typeBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -208)
+    typeBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -244)
     typeBtn:SetWidth(76)
     typeBtn:SetHeight(22)
     typeBtn:SetScript("OnClick", function()
@@ -276,18 +319,18 @@ function B:CreateUI()
     end)
     self.typeBtn = typeBtn
 
-    self.resBox = MakeEdit(f, 110, -209, 262)
+    self.resBox = MakeEdit(f, 110, -245, 262)
     self.resBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.reserves = e:GetText()
         B:UpdateTexts()
     end)
     MakeLabel(f, "Click the button to switch SR / HR / Reserves. Shift-click items to add links.",
-        24, -234, "GameFontHighlightSmall")
+        24, -270, "GameFontHighlightSmall")
 
     -- Extra note ----------------------------------------------------------------
-    MakeLabel(f, "Extra note (optional)", 24, -256)
-    self.noteBox = MakeEdit(f, 28, -274, 344)
+    MakeLabel(f, "Extra note (optional)", 24, -292)
+    self.noteBox = MakeEdit(f, 28, -310, 344)
     self.noteBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.note = e:GetText()
@@ -297,7 +340,7 @@ function B:CreateUI()
     -- Interval slider -------------------------------------------------------------
     local sName = "BannerIntervalSlider"
     local s = CreateFrame("Slider", sName, f, "OptionsSliderTemplate")
-    s:SetPoint("TOPLEFT", f, "TOPLEFT", 28, -332)
+    s:SetPoint("TOPLEFT", f, "TOPLEFT", 28, -368)
     s:SetWidth(340)
     s:SetMinMaxValues(30, 300)
     s:SetValueStep(10)
@@ -312,9 +355,9 @@ function B:CreateUI()
     self.slider = s
 
     -- Preview -------------------------------------------------------------------------
-    MakeLabel(f, "Preview", 24, -362)
+    MakeLabel(f, "Preview", 24, -398)
     local pv = CreateFrame("Frame", nil, f)
-    pv:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -380)
+    pv:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -416)
     pv:SetWidth(352)
     pv:SetHeight(88)
     pv:SetBackdrop({
@@ -332,10 +375,10 @@ function B:CreateUI()
     self.preview = pt
 
     -- Status + buttons --------------------------------------------------------------------
-    self.status = MakeLabel(f, "", 24, -478, "GameFontHighlightSmall")
+    self.status = MakeLabel(f, "", 24, -514, "GameFontHighlightSmall")
 
     local startBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
-    startBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -498)
+    startBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -534)
     startBtn:SetWidth(130)
     startBtn:SetHeight(24)
     startBtn:SetScript("OnClick", function()
@@ -361,6 +404,16 @@ function B:UpdateTexts()
     local db = self.db
 
     SetDDText(self.ddInst, Summarize(self:GetSelectedInstances(), "None selected"))
+
+    local prog = {}
+    for _, raid in ipairs(self.RAIDS) do
+        for _, v in ipairs(raid.variants) do
+            if db.instances[v.key] and db.progress[v.key] and (v.bosses or 0) > 1 then
+                prog[#prog + 1] = self:FormatInstance(v)
+            end
+        end
+    end
+    SetDDText(self.ddProg, Summarize(prog, "Not set"))
 
     local specLabels = self:CountSelectedSpecs() > 0 and self:GetSelectedSpecLabels() or {}
     SetDDText(self.ddSpec, Summarize(specLabels, "None selected"))
