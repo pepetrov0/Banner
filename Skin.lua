@@ -35,7 +35,7 @@ function B:SkinUI()
 
     if self.closeBtn then Skin("HandleCloseButton", self.closeBtn) end
 
-    for _, btn in ipairs({ self.typeBtn, self.startBtn, self.onceBtn, self.specBtn }) do
+    for _, btn in ipairs({ self.startBtn, self.onceBtn, self.specBtn }) do
         Skin("HandleButton", btn)
     end
     for _, box in ipairs({ self.gsBox, self.stopBox, self.resBox, self.noteBox }) do

@@ -276,28 +276,14 @@ function B:CreateUI()
     MakeLabel(f, "(0 = off)", 316, -198, "GameFontHighlightSmall")
 
     -- Reservations ------------------------------------------------------------
-    MakeLabel(f, "Item reservations", 24, -226)
-    local typeBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
-    typeBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -244)
-    typeBtn:SetWidth(76)
-    typeBtn:SetHeight(22)
-    typeBtn:SetScript("OnClick", function()
-        local idx = 1
-        for i, t in ipairs(B.RESERVE_TYPES) do
-            if t == db.reserveType then idx = i break end
-        end
-        db.reserveType = B.RESERVE_TYPES[(idx % #B.RESERVE_TYPES) + 1]
-        B:RefreshAll()
-    end)
-    self.typeBtn = typeBtn
-
-    self.resBox = MakeEdit(f, 110, -245, 262)
+    MakeLabel(f, "Reserves", 24, -226)
+    self.resBox = MakeEdit(f, 28, -245, 344)
     self.resBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.reserves = e:GetText()
         B:UpdateTexts()
     end)
-    MakeLabel(f, "Click the button to switch SR / HR / Reserves. Shift-click items to add links.",
+    MakeLabel(f, "Shift-click items to add links. Separate text entries with commas.",
         24, -270, "GameFontHighlightSmall")
 
     -- Extra note ----------------------------------------------------------------
@@ -421,7 +407,6 @@ function B:RefreshUI()
     self.noteBox:SetText(db.note or "")
     self.slider:SetValue(db.interval or 60)
     _G["BannerIntervalSliderText"]:SetText("Post every " .. (db.interval or 60) .. " seconds")
-    self.typeBtn:SetText(db.reserveType or "SR")
     self.refreshing = false
 
     self:UpdateTexts()

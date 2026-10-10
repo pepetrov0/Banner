@@ -12,8 +12,6 @@ B.nextSend  = 0
 B.nextQueue = 0
 B.queue     = {}
 
-B.RESERVE_TYPES = { "SR", "HR", "Reserves" }
-
 -- Non-channel chat types that can also be broadcast to
 B.CHAT_TYPES = {
     { type = "SAY",  name = "Say",  menu = "Say (nearby players)" },
@@ -29,7 +27,6 @@ local DEFAULTS = {
     skin        = true,   -- apply the ElvUI skin when ElvUI is loaded
     minGS       = 0,
     stopAt      = 0,      -- stop broadcasting when group reaches this size (0 = off)
-    reserveType = "SR",
     reserves    = "",
     note        = "",
     interval    = 60,
@@ -162,7 +159,7 @@ function B:BuildMessage()
     if gs > 0 then section("", { "GS " .. gs .. "+" }) end
 
     local res = ParseReserves(db.reserves)
-    if #res > 0 then section((db.reserveType or "SR") .. ": ", res) end
+    if #res > 0 then section("Reserves: ", res) end
 
     local note = strtrim((tostring(db.note or ""):gsub("|", "")))
     if note ~= "" then section("", { note }) end
