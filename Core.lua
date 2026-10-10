@@ -20,7 +20,7 @@ B.CHAT_TYPES = {
 
 local DEFAULTS = {
     instances   = {},     -- [variantKey] = true
-    progress    = {},     -- [variantKey] = bosses killed (nil = not specified)
+    progressText = "",    -- e.g. "8/12", or just "8" when exactly one instance is selected
     specs       = {},     -- [specKey]    = true
     channels    = {},     -- [lowercased channel base name] = display name
     chat        = {},     -- [chat type] = true, for SAY / YELL
@@ -50,25 +50,42 @@ end
 ------------------------------------------------------------------------
 -- Selection helpers
 ------------------------------------------------------------------------
--- "ICC25H" or, when progress is set, "ICC25H 8/12"
-function B:FormatInstance(v)
-    local p = tonumber(self.db.progress[v.key])
-    if p and v.bosses and v.bosses > 1 and p >= 0 and p <= v.bosses then
-        return format("%s %d/%d", v.short, p, v.bosses)
-    end
-    return v.short
-end
-
 function B:GetSelectedInstances()
     local out = {}
     for _, raid in ipairs(self.RAIDS) do
         for _, v in ipairs(raid.variants) do
             if self.db.instances[v.key] then
-                out[#out + 1] = self:FormatInstance(v)
+                out[#out + 1] = v.short
             end
         end
     end
     return out
+end
+
+-- The selected instance variant, but only if exactly one is selected
+function B:GetSingleVariant()
+    local found
+    for _, raid in ipairs(self.RAIDS) do
+        for _, v in ipairs(raid.variants) do
+            if self.db.instances[v.key] then
+                if found then return nil end
+                found = v
+            end
+        end
+    end
+    return found
+end
+
+-- Progress text from the box. A bare number gets "/<boss count>" added
+-- when exactly one instance is selected ("8" -> "8/12").
+function B:GetProgressText()
+    local raw = strtrim((tostring(self.db.progressText or ""):gsub("|", "")))
+    if raw == "" then return nil end
+    if raw:match("^%d+$") then
+        local v = self:GetSingleVariant()
+        if v and v.bosses and v.bosses > 1 then raw = raw .. "/" .. v.bosses end
+    end
+    return raw
 end
 
 -- Returns a list of labels. Collapses a fully selected class to "Any <Class>",
@@ -149,8 +166,14 @@ function B:BuildMessage()
     end
 
     local inst = self:GetSelectedInstances()
+    local prog = self:GetProgressText()
+    if prog and #inst == 1 then
+        inst[1] = inst[1] .. " " .. prog   -- "ICC25H 8/12"
+        prog = nil
+    end
     if #inst == 0 then inst = { "raid" } end
     section("LFM ", inst)
+    if prog then section("", { "Progress " .. prog }) end
 
     local specs = self:GetSelectedSpecLabels()
     if #specs > 0 then section("Need: ", specs) end

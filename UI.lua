@@ -49,7 +49,7 @@ local function InstanceInit(a, b)
     if level == 1 then
         UIDropDownMenu_AddButton({
             text = "Clear all", notCheckable = 1,
-            func = function() wipe(db.instances); wipe(db.progress); B:RefreshAll() end,
+            func = function() wipe(db.instances); B:RefreshAll() end,
         }, level)
         for i, raid in ipairs(B.RAIDS) do
             UIDropDownMenu_AddButton({
@@ -72,102 +72,6 @@ local function InstanceInit(a, b)
             }, level)
         end
     end
-end
-
-local function ProgressInit(a, b)
-    local level = MenuLevel(a, b)
-    local db = B.db
-    if level == 1 then
-        local any = false
-        for _, raid in ipairs(B.RAIDS) do
-            for _, v in ipairs(raid.variants) do
-                if db.instances[v.key] and (v.bosses or 0) > 1 then
-                    any = true
-                    local p = db.progress[v.key]
-                    UIDropDownMenu_AddButton({
-                        text = p and format("%s  (%d/%d)", v.short, p, v.bosses) or v.short,
-                        hasArrow = 1, notCheckable = 1, value = v.key,
-                    }, level)
-                end
-            end
-        end
-        if not any then
-            UIDropDownMenu_AddButton({
-                text = "Select instances first", isTitle = 1, notCheckable = 1,
-            }, level)
-        end
-    else
-        local key = UIDROPDOWNMENU_MENU_VALUE
-        local v = B.VARIANTS[key]
-        if not v then return end
-        UIDropDownMenu_AddButton({
-            text = "Not specified",
-            checked = (db.progress[key] == nil) and 1 or nil,
-            func = function() db.progress[key] = nil; B:RefreshAll() end,
-        }, level)
-        for n = 1, v.bosses do
-            local count = n
-            UIDropDownMenu_AddButton({
-                text = format("%d/%d bosses", count, v.bosses),
-                checked = (db.progress[key] == count) and 1 or nil,
-                func = function() db.progress[key] = count; B:RefreshAll() end,
-            }, level)
-        end
-    end
-end
-
-local function ChannelInit(a, b)
-    local level = MenuLevel(a, b)
-    if level ~= 1 then return end
-    local db = B.db
-    local seen = {}
-
-    local function toggle(lower, display)
-        if db.channels[lower] then db.channels[lower] = nil else db.channels[lower] = display end
-        B:UpdateTexts()
-    end
-
-    for _, c in ipairs(B.CHAT_TYPES) do
-        local t = c.type
-        UIDropDownMenu_AddButton({
-            text = c.menu,
-            checked = db.chat[t] and 1 or nil,
-            keepShownOnClick = 1,
-            func = function()
-                db.chat[t] = (not db.chat[t]) or nil
-                B:UpdateTexts()
-            end,
-        }, level)
-    end
-
-    for _, ch in ipairs(B:GetJoinedChannels()) do
-        local lower, display = ch.base:lower(), ch.base
-        if not seen[lower] then
-            seen[lower] = true
-            UIDropDownMenu_AddButton({
-                text = format("%d. %s", ch.id, ch.name),
-                checked = db.channels[lower] and 1 or nil,
-                keepShownOnClick = 1,
-                func = function() toggle(lower, display) end,
-            }, level)
-        end
-    end
-
-    -- Remembered selections for channels that are not currently joined
-    for lower, display in pairs(db.channels) do
-        if not seen[lower] then
-            UIDropDownMenu_AddButton({
-                text = display .. " (not joined)",
-                checked = 1,
-                keepShownOnClick = 1,
-                func = function() toggle(lower, display) end,
-            }, level)
-        end
-    end
-
-    UIDropDownMenu_AddButton({
-        text = "Tip: /join LookingForGroup", isTitle = 1, notCheckable = 1,
-    }, level)
 end
 
 ------------------------------------------------------------------------
@@ -248,7 +152,15 @@ function B:CreateUI()
         return dd
     end
     self.ddInst = MakeDropdown("Instances", -40,  InstanceInit)
-    self.ddProg = MakeDropdown("Progress",  -76,  ProgressInit)
+    MakeLabel(f, "Progress", 24, -84)
+    self.progBox = MakeEdit(f, 100, -80, 80)
+    self.progBox:SetMaxLetters(24)
+    self.progBox:SetScript("OnTextChanged", function(e)
+        if B.refreshing then return end
+        db.progressText = e:GetText()
+        B:UpdateTexts()
+    end)
+    MakeLabel(f, "e.g. 8/12, or just 8", 190, -84, "GameFontHighlightSmall")
     MakeLabel(f, "Specs", 24, -120)
     local specBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
     specBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 98, -114)
@@ -256,7 +168,13 @@ function B:CreateUI()
     specBtn:SetHeight(24)
     specBtn:SetScript("OnClick", function() B:ToggleSpecPanel() end)
     self.specBtn = specBtn
-    self.ddChan = MakeDropdown("Channels",  -148, ChannelInit)
+    MakeLabel(f, "Channels", 24, -156)
+    local chanBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
+    chanBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 98, -150)
+    chanBtn:SetWidth(240)
+    chanBtn:SetHeight(24)
+    chanBtn:SetScript("OnClick", function() B:ToggleChannelPanel() end)
+    self.chanBtn = chanBtn
 
     -- Min GearScore / stop size ---------------------------------------------
     MakeLabel(f, "Min GS", 24, -198)
@@ -356,6 +274,7 @@ function B:CreateUI()
     f:SetScript("OnShow", function() B:RefreshUI() end)
 
     if self.CreateSpecPanel then self:CreateSpecPanel() end
+    if self.CreateChannelPanel then self:CreateChannelPanel() end
     if self.SkinUI then self:SkinUI() end
 end
 
@@ -368,16 +287,6 @@ function B:UpdateTexts()
 
     SetDDText(self.ddInst, Summarize(self:GetSelectedInstances(), "None selected"))
 
-    local prog = {}
-    for _, raid in ipairs(self.RAIDS) do
-        for _, v in ipairs(raid.variants) do
-            if db.instances[v.key] and db.progress[v.key] and (v.bosses or 0) > 1 then
-                prog[#prog + 1] = self:FormatInstance(v)
-            end
-        end
-    end
-    SetDDText(self.ddProg, Summarize(prog, "Not set"))
-
     local specLabels = self:CountSelectedSpecs() > 0 and self:GetSelectedSpecLabels() or {}
     self.specBtn:SetText(Summarize(specLabels, "None selected"))
 
@@ -388,12 +297,13 @@ function B:UpdateTexts()
         local c = self.CHAT_TYPES[i]
         if db.chat[c.type] then table.insert(chans, 1, c.name) end
     end
-    SetDDText(self.ddChan, Summarize(chans, "None selected"))
+    self.chanBtn:SetText(Summarize(chans, "None selected"))
 
     local lines = self:BuildMessage()
     self.preview:SetText(table.concat(lines, "\n"))
 
     if self.RefreshSpecPanel then self:RefreshSpecPanel() end
+    if self.chanPanel and self.chanPanel:IsShown() then self:RefreshChannelPanel() end
 end
 
 function B:RefreshUI()
@@ -405,6 +315,7 @@ function B:RefreshUI()
     self.stopBox:SetText(tostring(db.stopAt or 0))
     self.resBox:SetText(db.reserves or "")
     self.noteBox:SetText(db.note or "")
+    self.progBox:SetText(db.progressText or "")
     self.slider:SetValue(db.interval or 60)
     _G["BannerIntervalSliderText"]:SetText("Post every " .. (db.interval or 60) .. " seconds")
     self.refreshing = false

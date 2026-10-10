@@ -20,7 +20,7 @@ local function BuildVariants(raid)
     return v
 end
 
--- bosses = number of bosses, used for progress such as "ICC25 8/12"
+-- bosses = number of bosses; lets a bare progress count ("8") become "8/12"
 B.RAIDS = {
     { name = "Icecrown Citadel",       code = "ICC",   bosses = 12, heroic = true },
     { name = "Ruby Sanctum",           code = "RS",    bosses = 4,  heroic = true },

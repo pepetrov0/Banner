@@ -9,4 +9,5 @@ Data.lua
 Core.lua
 UI.lua
 SpecGrid.lua
+ChannelGrid.lua
 Skin.lua

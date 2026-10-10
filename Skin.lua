@@ -35,13 +35,13 @@ function B:SkinUI()
 
     if self.closeBtn then Skin("HandleCloseButton", self.closeBtn) end
 
-    for _, btn in ipairs({ self.startBtn, self.onceBtn, self.specBtn }) do
+    for _, btn in ipairs({ self.startBtn, self.onceBtn, self.specBtn, self.chanBtn }) do
         Skin("HandleButton", btn)
     end
-    for _, box in ipairs({ self.gsBox, self.stopBox, self.resBox, self.noteBox }) do
+    for _, box in ipairs({ self.progBox, self.gsBox, self.stopBox, self.resBox, self.noteBox }) do
         Skin("HandleEditBox", box)
     end
-    for _, dd in ipairs({ self.ddInst, self.ddProg, self.ddChan }) do
+    for _, dd in ipairs({ self.ddInst }) do
         Skin("HandleDropDownBox", dd, 250)
     end
     Skin("HandleSliderFrame", self.slider)
@@ -54,6 +54,13 @@ function B:SkinUI()
         for _, btn in ipairs(self.specPanelButtons or {}) do Skin("HandleButton", btn) end
         for _, cb in pairs(self.classChecks or {}) do Skin("HandleCheckBox", cb) end
         for _, cb in pairs(self.specChecks or {}) do Skin("HandleCheckBox", cb) end
+    end
+
+    local chan = self.chanPanel
+    if chan then
+        Template(chan, "Transparent")
+        if self.chanPanelClose then Skin("HandleCloseButton", self.chanPanelClose) end
+        for _, cb in ipairs(self.chanChecks or {}) do Skin("HandleCheckBox", cb) end
     end
 
     self.skinned = true

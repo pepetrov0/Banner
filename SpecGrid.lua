@@ -152,6 +152,7 @@ function B:ToggleSpecPanel()
         p:Hide()
         return
     end
+    if self.chanPanel then self.chanPanel:Hide() end
     -- open on the right, or on the left if there is no room
     p:ClearAllPoints()
     local right, left, screen = f:GetRight(), f:GetLeft(), UIParent:GetRight()
