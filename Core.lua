@@ -121,27 +121,15 @@ function B:CountSelectedSpecs()
 end
 
 ------------------------------------------------------------------------
--- Reservations: split the edit box text into atoms (item links stay whole)
-------------------------------------------------------------------------
-local LINK_PATTERN = "|c%x%x%x%x%x%x%x%x|Hitem:[^|]+|h%[[^%]]*%]|h|r"
-
+-- Reservations: plain text, split at commas so a long list can wrap onto the next line
 local function ParseReserves(raw)
+    raw = tostring(raw or "")
+    raw = raw:gsub("|c%x%x%x%x%x%x%x%x|H.-|h(%[.-%])|h|r", "%1") -- pasted link -> just its [Name]
+    raw = raw:gsub("|", "")                                       -- stray pipes would break chat
     local atoms = {}
-    raw = raw or ""
-    local pos = 1
-    while pos <= #raw do
-        local s, e = raw:find(LINK_PATTERN, pos)
-        local chunk = raw:sub(pos, (s or (#raw + 1)) - 1)
-        for raw_piece in chunk:gmatch("[^,;]+") do
-            local piece = strtrim((raw_piece:gsub("|", "")))   -- stray pipes would break chat
-            if piece ~= "" then atoms[#atoms + 1] = piece end
-        end
-        if s then
-            atoms[#atoms + 1] = raw:sub(s, e)
-            pos = e + 1
-        else
-            break
-        end
+    for part in raw:gmatch("[^,]+") do
+        local text = strtrim(part)
+        if text ~= "" then atoms[#atoms + 1] = text end
     end
     return atoms
 end

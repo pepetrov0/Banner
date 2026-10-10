@@ -108,7 +108,7 @@ function B:CreateUI()
 
     local f = CreateFrame("Frame", "BannerFrame", UIParent)
     f:SetWidth(400)
-    f:SetHeight(576)
+    f:SetHeight(560)
     f:SetPoint("CENTER")
     f:SetFrameStrata("DIALOG")
     f:SetMovable(true)
@@ -201,12 +201,10 @@ function B:CreateUI()
         db.reserves = e:GetText()
         B:UpdateTexts()
     end)
-    MakeLabel(f, "Shift-click items to add links. Separate text entries with commas.",
-        24, -270, "GameFontHighlightSmall")
 
     -- Extra note ----------------------------------------------------------------
-    MakeLabel(f, "Extra note (optional)", 24, -292)
-    self.noteBox = MakeEdit(f, 28, -310, 344)
+    MakeLabel(f, "Extra note (optional)", 24, -276)
+    self.noteBox = MakeEdit(f, 28, -294, 344)
     self.noteBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.note = e:GetText()
@@ -216,7 +214,7 @@ function B:CreateUI()
     -- Interval slider -------------------------------------------------------------
     local sName = "BannerIntervalSlider"
     local s = CreateFrame("Slider", sName, f, "OptionsSliderTemplate")
-    s:SetPoint("TOPLEFT", f, "TOPLEFT", 28, -368)
+    s:SetPoint("TOPLEFT", f, "TOPLEFT", 28, -352)
     s:SetWidth(340)
     s:SetMinMaxValues(10, 300)
     s:SetValueStep(10)
@@ -231,9 +229,9 @@ function B:CreateUI()
     self.slider = s
 
     -- Preview -------------------------------------------------------------------------
-    MakeLabel(f, "Preview", 24, -398)
+    MakeLabel(f, "Preview", 24, -382)
     local pv = CreateFrame("Frame", nil, f)
-    pv:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -416)
+    pv:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -400)
     pv:SetWidth(352)
     pv:SetHeight(88)
     pv:SetBackdrop({
@@ -252,10 +250,10 @@ function B:CreateUI()
     self.preview = pt
 
     -- Status + buttons --------------------------------------------------------------------
-    self.status = MakeLabel(f, "", 24, -514, "GameFontHighlightSmall")
+    self.status = MakeLabel(f, "", 24, -498, "GameFontHighlightSmall")
 
     local startBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
-    startBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -534)
+    startBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -518)
     startBtn:SetWidth(130)
     startBtn:SetHeight(24)
     startBtn:SetScript("OnClick", function()
@@ -347,13 +345,3 @@ function B:ToggleUI()
     self:CreateUI()
     if self.frame:IsShown() then self.frame:Hide() else self.frame:Show() end
 end
-
-------------------------------------------------------------------------
--- Shift-click item links into the reservations box
-------------------------------------------------------------------------
-hooksecurefunc("ChatEdit_InsertLink", function(text)
-    local box = B.resBox
-    if text and box and box:IsVisible() and box:HasFocus() then
-        box:Insert(text .. " ")
-    end
-end)
