@@ -14,11 +14,19 @@ B.queue     = {}
 
 B.RESERVE_TYPES = { "SR", "HR", "Reserves" }
 
+-- Non-channel chat types that can also be broadcast to
+B.CHAT_TYPES = {
+    { type = "SAY",  name = "Say",  menu = "Say (nearby players)" },
+    { type = "YELL", name = "Yell", menu = "Yell (wide area)" },
+}
+
 local DEFAULTS = {
     instances   = {},     -- [variantKey] = true
     progress    = {},     -- [variantKey] = bosses killed (nil = not specified)
     specs       = {},     -- [specKey]    = true
     channels    = {},     -- [lowercased channel base name] = display name
+    chat        = {},     -- [chat type] = true, for SAY / YELL
+    skin        = true,   -- apply the ElvUI skin when ElvUI is loaded
     minGS       = 0,
     stopAt      = 0,      -- stop broadcasting when group reaches this size (0 = off)
     reserveType = "SR",
@@ -207,6 +215,11 @@ function B:GetTargets()
             targets[#targets + 1] = ch
         end
     end
+    for _, c in ipairs(self.CHAT_TYPES) do
+        if self.db.chat[c.type] then
+            targets[#targets + 1] = { type = c.type, name = c.name }
+        end
+    end
     return targets
 end
 
@@ -242,7 +255,7 @@ function B:Broadcast(manual)
 
     local targets = self:GetTargets()
     if #targets == 0 then
-        self:Print("None of your selected channels are joined (try /join LookingForGroup).")
+        self:Print("None of your selected channels are available (try /join LookingForGroup).")
         if not manual then self:Stop() end
         return
     end
@@ -250,14 +263,14 @@ function B:Broadcast(manual)
     local lines = self:BuildMessage()
     for _, ch in ipairs(targets) do
         for _, text in ipairs(lines) do
-            self.queue[#self.queue + 1] = { channel = ch.name, text = text }
+            self.queue[#self.queue + 1] = { channel = ch.name, type = ch.type, text = text }
         end
     end
 end
 
 function B:Start()
     if self.running then return end
-    if not next(self.db.channels) then
+    if not next(self.db.channels) and not next(self.db.chat) then
         self:Print("Pick at least one channel first (/banner).")
         return
     end
@@ -310,9 +323,13 @@ driver:SetScript("OnUpdate", function(self, elapsed)
 
     if #B.queue > 0 and now >= B.nextQueue then
         local item = table.remove(B.queue, 1)
-        local id = GetChannelName(item.channel)
-        if id and id > 0 then
-            SendChatMessage(item.text, "CHANNEL", nil, id)
+        if item.type then
+            SendChatMessage(item.text, item.type)
+        else
+            local id = GetChannelName(item.channel)
+            if id and id > 0 then
+                SendChatMessage(item.text, "CHANNEL", nil, id)
+            end
         end
         B.nextQueue = now + QUEUE_DELAY
     end
@@ -341,9 +358,12 @@ SlashCmdList["BANNER"] = function(msg)
         if B.running then B:Stop() else B:Start() end
     elseif msg == "now" then
         B:Broadcast(true)
+    elseif msg == "skin" then
+        B.db.skin = not B.db.skin
+        B:Print("ElvUI skin " .. (B.db.skin and "enabled" or "disabled") .. ". Type /reload to apply.")
     elseif msg == "preview" then
         for _, line in ipairs(B:BuildMessage()) do B:Print(line) end
     else
-        B:Print("Commands: /banner (window), start, stop, toggle, now (send once), preview")
+        B:Print("Commands: /banner (window), start, stop, toggle, now (send once), preview, skin")
     end
 end

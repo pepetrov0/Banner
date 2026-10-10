@@ -2,9 +2,11 @@
 ## Title: Banner
 ## Notes: Advertise your raid to chat channels. Pick instances, specs, minimum GearScore, reserves and channels, then broadcast on a timer.
 ## Author: You
-## Version: 1.0.0
+## Version: 1.1.0
 ## SavedVariables: BannerDB
 
 Data.lua
 Core.lua
 UI.lua
+SpecGrid.lua
+Skin.lua

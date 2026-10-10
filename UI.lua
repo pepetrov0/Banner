@@ -116,56 +116,6 @@ local function ProgressInit(a, b)
     end
 end
 
-local function SpecInit(a, b)
-    local level = MenuLevel(a, b)
-    local db = B.db
-    if level == 1 then
-        UIDropDownMenu_AddButton({
-            text = "All classes & specs", notCheckable = 1,
-            func = function()
-                for _, s in ipairs(B.SPECS) do db.specs[s.key] = true end
-                B:RefreshAll()
-            end,
-        }, level)
-        for _, role in ipairs(B.ROLES) do
-            local id = role.id
-            UIDropDownMenu_AddButton({
-                text = "+ " .. role.label, notCheckable = 1,
-                func = function()
-                    for _, s in ipairs(B.SPECS) do
-                        if s.role == id then db.specs[s.key] = true end
-                    end
-                    B:RefreshAll()
-                end,
-            }, level)
-        end
-        UIDropDownMenu_AddButton({
-            text = "Clear selection", notCheckable = 1,
-            func = function() wipe(db.specs); B:RefreshAll() end,
-        }, level)
-        for _, class in ipairs(B.CLASSES) do
-            UIDropDownMenu_AddButton({
-                text = ClassColored(class.token, class.name),
-                hasArrow = 1, notCheckable = 1, value = class.token,
-            }, level)
-        end
-    else
-        local token = UIDROPDOWNMENU_MENU_VALUE
-        for _, s in ipairs(B.SPECS_BY_CLASS[token] or {}) do
-            local key = s.key
-            UIDropDownMenu_AddButton({
-                text = format("%s (%s)", s.name, B.ROLE_NAMES[s.role]),
-                checked = db.specs[key] and 1 or nil,
-                keepShownOnClick = 1,
-                func = function()
-                    db.specs[key] = (not db.specs[key]) or nil
-                    B:UpdateTexts()
-                end,
-            }, level)
-        end
-    end
-end
-
 local function ChannelInit(a, b)
     local level = MenuLevel(a, b)
     if level ~= 1 then return end
@@ -175,6 +125,19 @@ local function ChannelInit(a, b)
     local function toggle(lower, display)
         if db.channels[lower] then db.channels[lower] = nil else db.channels[lower] = display end
         B:UpdateTexts()
+    end
+
+    for _, c in ipairs(B.CHAT_TYPES) do
+        local t = c.type
+        UIDropDownMenu_AddButton({
+            text = c.menu,
+            checked = db.chat[t] and 1 or nil,
+            keepShownOnClick = 1,
+            func = function()
+                db.chat[t] = (not db.chat[t]) or nil
+                B:UpdateTexts()
+            end,
+        }, level)
     end
 
     for _, ch in ipairs(B:GetJoinedChannels()) do
@@ -265,12 +228,15 @@ function B:CreateUI()
     hdr:SetWidth(256)
     hdr:SetHeight(64)
     hdr:SetPoint("TOP", f, "TOP", 0, 12)
+    self.hdr = hdr
     local title = f:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     title:SetPoint("TOP", hdr, "TOP", 0, -14)
     title:SetText("Banner")
+    self.title = title
 
     local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -5, -5)
+    self.closeBtn = close
 
     -- Instances / Specs / Channels dropdowns -------------------------------
     local function MakeDropdown(label, y, init)
@@ -283,7 +249,13 @@ function B:CreateUI()
     end
     self.ddInst = MakeDropdown("Instances", -40,  InstanceInit)
     self.ddProg = MakeDropdown("Progress",  -76,  ProgressInit)
-    self.ddSpec = MakeDropdown("Specs",     -112, SpecInit)
+    MakeLabel(f, "Specs", 24, -120)
+    local specBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
+    specBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 98, -114)
+    specBtn:SetWidth(240)
+    specBtn:SetHeight(24)
+    specBtn:SetScript("OnClick", function() B:ToggleSpecPanel() end)
+    self.specBtn = specBtn
     self.ddChan = MakeDropdown("Channels",  -148, ChannelInit)
 
     -- Min GearScore / stop size ---------------------------------------------
@@ -367,6 +339,7 @@ function B:CreateUI()
         insets = { left = 3, right = 3, top = 3, bottom = 3 },
     })
     pv:SetBackdropColor(0, 0, 0, 0.6)
+    self.previewFrame = pv
     local pt = pv:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     pt:SetPoint("TOPLEFT", pv, "TOPLEFT", 8, -8)
     pt:SetPoint("BOTTOMRIGHT", pv, "BOTTOMRIGHT", -8, 8)
@@ -392,8 +365,12 @@ function B:CreateUI()
     onceBtn:SetHeight(24)
     onceBtn:SetText("Send once")
     onceBtn:SetScript("OnClick", function() B:Broadcast(true) end)
+    self.onceBtn = onceBtn
 
     f:SetScript("OnShow", function() B:RefreshUI() end)
+
+    if self.CreateSpecPanel then self:CreateSpecPanel() end
+    if self.SkinUI then self:SkinUI() end
 end
 
 ------------------------------------------------------------------------
@@ -416,15 +393,21 @@ function B:UpdateTexts()
     SetDDText(self.ddProg, Summarize(prog, "Not set"))
 
     local specLabels = self:CountSelectedSpecs() > 0 and self:GetSelectedSpecLabels() or {}
-    SetDDText(self.ddSpec, Summarize(specLabels, "None selected"))
+    self.specBtn:SetText(Summarize(specLabels, "None selected"))
 
     local chans = {}
     for _, display in pairs(db.channels) do chans[#chans + 1] = display end
     table.sort(chans)
+    for i = #self.CHAT_TYPES, 1, -1 do
+        local c = self.CHAT_TYPES[i]
+        if db.chat[c.type] then table.insert(chans, 1, c.name) end
+    end
     SetDDText(self.ddChan, Summarize(chans, "None selected"))
 
     local lines = self:BuildMessage()
     self.preview:SetText(table.concat(lines, "\n"))
+
+    if self.RefreshSpecPanel then self:RefreshSpecPanel() end
 end
 
 function B:RefreshUI()

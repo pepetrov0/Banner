@@ -112,7 +112,9 @@ local specDefs = {
 B.SPECS = {}
 B.SPECS_BY_CLASS = {}
 for _, d in ipairs(specDefs) do
-    local s = { key = d[1] .. ":" .. d[2], class = d[1], name = d[2], label = d[3], role = d[4] }
+    -- tag = label without the trailing class word, e.g. "Prot Warr" -> "Prot"
+    local s = { key = d[1] .. ":" .. d[2], class = d[1], name = d[2], label = d[3], role = d[4],
+                tag = d[3]:match("^(.-)%s%S+$") or d[3] }
     B.SPECS[#B.SPECS + 1] = s
     B.SPECS_BY_CLASS[d[1]] = B.SPECS_BY_CLASS[d[1]] or {}
     table.insert(B.SPECS_BY_CLASS[d[1]], s)
