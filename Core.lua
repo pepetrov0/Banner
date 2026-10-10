@@ -5,7 +5,7 @@ local B = Banner
 local PREFIX      = "|cff33ff99Banner|r: "
 local MAX_LEN     = 250   -- chat limit is 255 bytes; keep a little headroom
 local QUEUE_DELAY = 1.5   -- seconds between individual messages (avoids server throttling)
-local MIN_INTERVAL = 30
+local MIN_INTERVAL = 10
 
 B.running   = false
 B.nextSend  = 0
