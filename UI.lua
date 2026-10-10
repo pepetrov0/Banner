@@ -108,7 +108,7 @@ function B:CreateUI()
 
     local f = CreateFrame("Frame", "BannerFrame", UIParent)
     f:SetWidth(400)
-    f:SetHeight(560)
+    f:SetHeight(494)
     f:SetPoint("CENTER")
     f:SetFrameStrata("DIALOG")
     f:SetMovable(true)
@@ -151,51 +151,51 @@ function B:CreateUI()
         UIDropDownMenu_Initialize(dd, init, nil, 1)
         return dd
     end
-    self.ddInst = MakeDropdown("Instances", -40,  InstanceInit)
-    MakeLabel(f, "Progress", 24, -84)
-    self.progBox = MakeEdit(f, 100, -80, 80)
+    self.ddInst = MakeDropdown("Instances", -38,  InstanceInit)
+    MakeLabel(f, "Progress", 24, -77)
+    self.progBox = MakeEdit(f, 100, -72, 80)
     self.progBox:SetMaxLetters(24)
     self.progBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.progressText = e:GetText()
         B:UpdateTexts()
     end)
-    MakeLabel(f, "e.g. 8/12, or just 8", 190, -84, "GameFontHighlightSmall")
-    MakeLabel(f, "Specs", 24, -120)
+    MakeLabel(f, "e.g. 8/12, or just 8", 190, -77, "GameFontHighlightSmall")
+    MakeLabel(f, "Specs", 24, -104)
     local specBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
-    specBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 98, -114)
+    specBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 98, -98)
     specBtn:SetWidth(240)
     specBtn:SetHeight(24)
     specBtn:SetScript("OnClick", function() B:ToggleSpecPanel() end)
     self.specBtn = specBtn
-    MakeLabel(f, "Channels", 24, -156)
+    MakeLabel(f, "Channels", 24, -132)
     local chanBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
-    chanBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 98, -150)
+    chanBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 98, -126)
     chanBtn:SetWidth(240)
     chanBtn:SetHeight(24)
     chanBtn:SetScript("OnClick", function() B:ToggleChannelPanel() end)
     self.chanBtn = chanBtn
 
     -- Min GearScore / stop size ---------------------------------------------
-    MakeLabel(f, "Min GS", 24, -198)
-    self.gsBox = MakeEdit(f, 90, -194, 60, true)
+    MakeLabel(f, "Min GS", 24, -160)
+    self.gsBox = MakeEdit(f, 90, -156, 60, true)
     self.gsBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.minGS = tonumber(e:GetText()) or 0
         B:UpdateTexts()
     end)
 
-    MakeLabel(f, "Stop at size", 180, -198)
-    self.stopBox = MakeEdit(f, 268, -194, 40, true)
+    MakeLabel(f, "Stop at size", 180, -160)
+    self.stopBox = MakeEdit(f, 268, -156, 40, true)
     self.stopBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.stopAt = tonumber(e:GetText()) or 0
     end)
-    MakeLabel(f, "(0 = off)", 316, -198, "GameFontHighlightSmall")
+    MakeLabel(f, "(0 = off)", 316, -160, "GameFontHighlightSmall")
 
     -- Reservations ------------------------------------------------------------
-    MakeLabel(f, "Reserves", 24, -226)
-    self.resBox = MakeEdit(f, 28, -245, 344)
+    MakeLabel(f, "Reserves", 24, -186)
+    self.resBox = MakeEdit(f, 28, -202, 344)
     self.resBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.reserves = e:GetText()
@@ -203,8 +203,8 @@ function B:CreateUI()
     end)
 
     -- Extra note ----------------------------------------------------------------
-    MakeLabel(f, "Extra note (optional)", 24, -276)
-    self.noteBox = MakeEdit(f, 28, -294, 344)
+    MakeLabel(f, "Extra note (optional)", 24, -230)
+    self.noteBox = MakeEdit(f, 28, -246, 344)
     self.noteBox:SetScript("OnTextChanged", function(e)
         if B.refreshing then return end
         db.note = e:GetText()
@@ -214,7 +214,7 @@ function B:CreateUI()
     -- Interval slider -------------------------------------------------------------
     local sName = "BannerIntervalSlider"
     local s = CreateFrame("Slider", sName, f, "OptionsSliderTemplate")
-    s:SetPoint("TOPLEFT", f, "TOPLEFT", 28, -352)
+    s:SetPoint("TOPLEFT", f, "TOPLEFT", 28, -294)
     s:SetWidth(340)
     s:SetMinMaxValues(10, 300)
     s:SetValueStep(10)
@@ -229,11 +229,11 @@ function B:CreateUI()
     self.slider = s
 
     -- Preview -------------------------------------------------------------------------
-    MakeLabel(f, "Preview", 24, -382)
+    MakeLabel(f, "Preview", 24, -330)
     local pv = CreateFrame("Frame", nil, f)
-    pv:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -400)
+    pv:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -346)
     pv:SetWidth(352)
-    pv:SetHeight(88)
+    pv:SetHeight(76)
     pv:SetBackdrop({
         bgFile   = "Interface\\Tooltips\\UI-Tooltip-Background",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -250,10 +250,10 @@ function B:CreateUI()
     self.preview = pt
 
     -- Status + buttons --------------------------------------------------------------------
-    self.status = MakeLabel(f, "", 24, -498, "GameFontHighlightSmall")
+    self.status = MakeLabel(f, "", 24, -430, "GameFontHighlightSmall")
 
     local startBtn = CreateFrame("Button", UName("Btn"), f, "UIPanelButtonTemplate")
-    startBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -518)
+    startBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 24, -448)
     startBtn:SetWidth(130)
     startBtn:SetHeight(24)
     startBtn:SetScript("OnClick", function()
