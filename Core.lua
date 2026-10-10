@@ -187,7 +187,7 @@ function B:BuildMessage()
     local note = strtrim((tostring(db.note or ""):gsub("|", "")))
     if note ~= "" then section("", { note }) end
 
-    section("", { "PM " .. (UnitName("player") or "me") })
+    section("", { "\\w " .. (UnitName("player") or "me") })
 
     -- Pack atoms into lines of at most MAX_LEN bytes without splitting any atom
     local lines, line = {}, ""
