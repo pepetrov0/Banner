@@ -19,8 +19,8 @@ B.CHAT_TYPES = {
 }
 
 local DEFAULTS = {
-    instances   = {},     -- [variantKey] = true
-    progressText = "",    -- e.g. "8/12", or just "8" when exactly one instance is selected
+    instances   = {},     -- [variantKey] = true (at most one entry)
+    instanceText = "",    -- free text appended after the instance name, e.g. "ICC25 {text}"
     specs       = {},     -- [specKey]    = true
     channels    = {},     -- [lowercased channel base name] = display name
     chat        = {},     -- [chat type] = true, for SAY / YELL
@@ -62,29 +62,10 @@ function B:GetSelectedInstances()
     return out
 end
 
--- The selected instance variant, but only if exactly one is selected
-function B:GetSingleVariant()
-    local found
-    for _, raid in ipairs(self.RAIDS) do
-        for _, v in ipairs(raid.variants) do
-            if self.db.instances[v.key] then
-                if found then return nil end
-                found = v
-            end
-        end
-    end
-    return found
-end
-
--- Progress text from the box. A bare number gets "/<boss count>" added
--- when exactly one instance is selected ("8" -> "8/12").
-function B:GetProgressText()
-    local raw = strtrim((tostring(self.db.progressText or ""):gsub("|", "")))
+-- Free text appended after the instance name (sanitised for chat), or nil
+function B:GetInstanceText()
+    local raw = strtrim((tostring(self.db.instanceText or ""):gsub("|", "")))
     if raw == "" then return nil end
-    if raw:match("^%d+$") then
-        local v = self:GetSingleVariant()
-        if v and v.bosses and v.bosses > 1 then raw = raw .. "/" .. v.bosses end
-    end
     return raw
 end
 
@@ -110,6 +91,19 @@ function B:GetSelectedSpecLabels()
         return { "All classes/specs" }
     end
     return out
+end
+
+-- Only one instance may be selected; keep the first one if older saved
+-- settings contain several.
+function B:NormalizeInstances()
+    local keep
+    for _, raid in ipairs(self.RAIDS) do
+        for _, v in ipairs(raid.variants) do
+            if self.db.instances[v.key] and not keep then keep = v.key end
+        end
+    end
+    wipe(self.db.instances)
+    if keep then self.db.instances[keep] = true end
 end
 
 function B:CountSelectedSpecs()
@@ -154,14 +148,10 @@ function B:BuildMessage()
     end
 
     local inst = self:GetSelectedInstances()
-    local prog = self:GetProgressText()
-    if prog and #inst == 1 then
-        inst[1] = inst[1] .. " " .. prog   -- "ICC25H 8/12"
-        prog = nil
-    end
     if #inst == 0 then inst = { "raid" } end
+    local text = self:GetInstanceText()
+    if text then inst[1] = inst[1] .. " " .. text end   -- "ICC25 {text}"
     section("LFM ", inst)
-    if prog then section("", { "Progress " .. prog }) end
 
     local specs = self:GetSelectedSpecLabels()
     if #specs > 0 then section("Need: ", specs) end
@@ -313,6 +303,7 @@ driver:SetScript("OnEvent", function(self, event, arg1)
         BannerDB = BannerDB or {}
         CopyDefaults(DEFAULTS, BannerDB)
         B.db = BannerDB
+        B:NormalizeInstances()
     elseif event == "RAID_ROSTER_UPDATE" or event == "PARTY_MEMBERS_CHANGED" then
         if B.running and B:IsFull() then
             B:Print("Group is full - broadcasting stopped.")

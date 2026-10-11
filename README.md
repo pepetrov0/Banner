@@ -11,12 +11,12 @@
 
 </div>
 
-Banner is a recruitment ("LFM") broadcasting addon for **World of Warcraft: Wrath of the Lich King 3.3.5a**. Configure your raid once — instances, boss progress, specs you need, minimum GearScore, reserves — and Banner posts a tidy, length-aware message to your chat channels on a fixed interval, then stops by itself once your group is full.
+Banner is a recruitment ("LFM") broadcasting addon for **World of Warcraft: Wrath of the Lich King 3.3.5a**. Configure your raid once — instance, specs you need, minimum GearScore, reserves — and Banner posts a tidy, length-aware message to your chat channels on a fixed interval, then stops by itself once your group is full.
 
 ## Features
 
 - **Every WotLK raid built in** — 9 raids with 10/25 (and heroic, where available) variants, from Naxxramas to Ruby Sanctum
-- **Smart progress** — type `8` for a single instance and it becomes `8/12` automatically
+- **Single instance + custom text** — pick one raid and add any text after its name (e.g. `ICC25 8/12 fresh`)
 - **Class & spec picker** — 31 specs across 10 classes, with role quick-select (Tanks, Healers, Melee, Ranged) and per-class toggles
 - **Any target** — broadcast to every joined chat channel, plus Say and Yell
 - **GearScore filter** — advertise a minimum GS with one field
@@ -40,8 +40,8 @@ Banner is a recruitment ("LFM") broadcasting addon for **World of Warcraft: Wrat
 ## Getting started
 
 1. Type `/banner` to open the config window.
-2. Pick a few **instances**, the **specs** you need, and your target **channels**.
-3. Fill in the optional fields: progress, minimum GearScore, reserves, extra note.
+2. Pick an **instance**, the **specs** you need, and your target **channels**.
+3. Fill in the optional fields: instance text, minimum GearScore, reserves, extra note.
 4. Hit **Start** — or **Send once** for a single round.
 
 > [!TIP]
@@ -51,8 +51,8 @@ Banner is a recruitment ("LFM") broadcasting addon for **World of Warcraft: Wrat
 
 | Field | What it does |
 | --- | --- |
-| **Instances** | Nested dropdown menus — e.g. *ICC → 25-man Heroic*. Select any number of raids. |
-| **Progress** | Boss progress such as `8/12`, or just `8` (gets a `/bosses` suffix when exactly one instance is selected). |
+| **Instances** | Nested dropdown menus — e.g. *ICC → 25-man Heroic*. Only one instance can be selected. |
+| **Text** | Free-form text appended right after the instance name, e.g. `ICC25 8/12 fresh`. |
 | **Specs** | Side panel with one row per class and one checkbox per spec. Ticking a class selects all of its specs; quick buttons for All / None / Tanks / Healers / Melee / Ranged. |
 | **Channels** | Side panel listing every channel you've joined, plus Say and Yell. Channels you've since left stay remembered, greyed out. |
 | **Min GS** | Adds a `GS 5500+` section to the message. |
@@ -67,13 +67,13 @@ Banner is a recruitment ("LFM") broadcasting addon for **World of Warcraft: Wrat
 A short selection fits on one line:
 
 ```
-LFM ICC25H 8/12 - Need: Prot Warr, Holy Pally, BM Hunter - GS 5500+ - Reserves: Frag, Frost - \w Ashvane
+LFM ICC25H 8/12 fresh - Need: Prot Warr, Holy Pally, BM Hunter - GS 5500+ - Reserves: Frag, Frost - \w Ashvane
 ```
 
-With more instances and specs, the message wraps onto extra lines at item boundaries:
+With more specs and reserves, the message wraps onto extra lines at item boundaries:
 
 ```
-LFM ICC25H, ToGC10 - Progress 8/12 - Need: Prot Warr, Holy Pally, Prot Pally, BM Hunter, MM Hunter, Disc Priest, Blood DK, Ele Shaman, Arcane Mage, Fire Mage, Aff Lock, Destro Lock, Balance Druid, Resto Druid - GS 5500+ - Reserves: Frag, Frost
+LFM ICC25H 8/12 fresh - Need: Prot Warr, Holy Pally, Prot Pally, BM Hunter, MM Hunter, Disc Priest, Blood DK, Ele Shaman, Arcane Mage, Fire Mage, Aff Lock, Destro Lock, Balance Druid, Resto Druid - GS 5500+ - Reserves: Frag, Frost
 Blackice - \w Ashvane
 ```
 

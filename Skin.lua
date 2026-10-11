@@ -38,11 +38,11 @@ function B:SkinUI()
     for _, btn in ipairs({ self.startBtn, self.onceBtn, self.specBtn, self.chanBtn }) do
         Skin("HandleButton", btn)
     end
-    for _, box in ipairs({ self.progBox, self.gsBox, self.stopBox, self.resBox, self.noteBox }) do
+    for _, box in ipairs({ self.textBox, self.gsBox, self.stopBox, self.resBox, self.noteBox }) do
         Skin("HandleEditBox", box)
     end
     for _, dd in ipairs({ self.ddInst }) do
-        Skin("HandleDropDownBox", dd, 250)
+        Skin("HandleDropDownBox", dd, 150)
     end
     Skin("HandleSliderFrame", self.slider)
     Template(self.previewFrame, "Transparent")
