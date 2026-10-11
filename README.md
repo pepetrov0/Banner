@@ -4,7 +4,7 @@
 
 **Advertise your raid to chat channels.**
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 ![Game](https://img.shields.io/badge/WoW_WotLK-3.3.5a-8a2be2)
 ![Lua](https://img.shields.io/badge/Lua-5.1-2C2D72?logo=lua&logoColor=white)
 ![Dependencies](https://img.shields.io/badge/dependencies-none-3fb950)
