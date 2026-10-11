@@ -5,14 +5,22 @@ local B = Banner
 ------------------------------------------------------------------------
 -- Raids
 ------------------------------------------------------------------------
+-- size   = a single fixed raid size (key and short name are just the code, e.g. "SSC")
+-- sizes  = list of sizes for raids that come in several (default 10 and 25)
+-- heroic = adds 10-/25-man heroic variants
 local function BuildVariants(raid)
     local code, hcode = raid.code, raid.hcode
     local v = {}
-    v[#v + 1] = { key = code .. "10", short = code .. "10", label = "10-man" }
-    v[#v + 1] = { key = code .. "25", short = code .. "25", label = "25-man" }
-    if raid.heroic then
-        v[#v + 1] = { key = code .. "10H", short = hcode and (hcode .. "10") or (code .. "10H"), label = "10-man Heroic" }
-        v[#v + 1] = { key = code .. "25H", short = hcode and (hcode .. "25") or (code .. "25H"), label = "25-man Heroic" }
+    if raid.size then
+        v[#v + 1] = { key = code, short = code, label = raid.size .. "-man" }
+    else
+        for _, size in ipairs(raid.sizes or { 10, 25 }) do
+            v[#v + 1] = { key = code .. size, short = code .. size, label = size .. "-man" }
+        end
+        if raid.heroic then
+            v[#v + 1] = { key = code .. "10H", short = hcode and (hcode .. "10") or (code .. "10H"), label = "10-man Heroic" }
+            v[#v + 1] = { key = code .. "25H", short = hcode and (hcode .. "25") or (code .. "25H"), label = "25-man Heroic" }
+        end
     end
     for _, variant in ipairs(v) do
         variant.bosses = raid.bosses
@@ -20,17 +28,37 @@ local function BuildVariants(raid)
     return v
 end
 
+-- exp    = expansion heading shown in the instance menu
 -- bosses = number of bosses in the raid
 B.RAIDS = {
-    { name = "Icecrown Citadel",       code = "ICC",   bosses = 12, heroic = true },
-    { name = "Ruby Sanctum",           code = "RS",    bosses = 4,  heroic = true },
-    { name = "Trial of the Crusader",  code = "ToC",   bosses = 5,  hcode = "ToGC", heroic = true },
-    { name = "Ulduar",                 code = "Uld",   bosses = 14 },
-    { name = "Naxxramas",              code = "Naxx",  bosses = 15 },
-    { name = "Eye of Eternity",        code = "EoE",   bosses = 1 },
-    { name = "Obsidian Sanctum",       code = "OS",    bosses = 1 },
-    { name = "Vault of Archavon",      code = "VoA",   bosses = 4 },
-    { name = "Onyxia's Lair",          code = "Ony",   bosses = 1 },
+    -- Wrath of the Lich King
+    { exp = "Wrath of the Lich King", name = "Icecrown Citadel",       code = "ICC",   bosses = 12, heroic = true },
+    { exp = "Wrath of the Lich King", name = "Ruby Sanctum",           code = "RS",    bosses = 4,  heroic = true },
+    { exp = "Wrath of the Lich King", name = "Trial of the Crusader",  code = "ToC",   bosses = 5,  hcode = "ToGC", heroic = true },
+    { exp = "Wrath of the Lich King", name = "Ulduar",                 code = "Uld",   bosses = 14 },
+    { exp = "Wrath of the Lich King", name = "Naxxramas",              code = "Naxx",  bosses = 15, sizes = { 10, 25, 40 } },
+    { exp = "Wrath of the Lich King", name = "Eye of Eternity",        code = "EoE",   bosses = 1 },
+    { exp = "Wrath of the Lich King", name = "Obsidian Sanctum",       code = "OS",    bosses = 1 },
+    { exp = "Wrath of the Lich King", name = "Vault of Archavon",      code = "VoA",   bosses = 4 },
+    { exp = "Wrath of the Lich King", name = "Onyxia's Lair",          code = "Ony",   bosses = 1,  sizes = { 10, 25, 40 } },
+
+    -- The Burning Crusade
+    { exp = "The Burning Crusade", name = "Sunwell Plateau",           code = "SWP",   bosses = 6,  size = 25 },
+    { exp = "The Burning Crusade", name = "Black Temple",              code = "BT",    bosses = 9,  size = 25 },
+    { exp = "The Burning Crusade", name = "Hyjal Summit",              code = "Hyjal", bosses = 5,  size = 25 },
+    { exp = "The Burning Crusade", name = "Tempest Keep",              code = "TK",    bosses = 4,  size = 25 },
+    { exp = "The Burning Crusade", name = "Serpentshrine Cavern",      code = "SSC",   bosses = 6,  size = 25 },
+    { exp = "The Burning Crusade", name = "Magtheridon's Lair",        code = "Mag",   bosses = 1,  size = 25 },
+    { exp = "The Burning Crusade", name = "Gruul's Lair",              code = "Gruul", bosses = 2,  size = 25 },
+    { exp = "The Burning Crusade", name = "Zul'Aman",                  code = "ZA",    bosses = 6,  size = 10 },
+    { exp = "The Burning Crusade", name = "Karazhan",                  code = "Kara",  bosses = 11, size = 10 },
+
+    -- Classic
+    { exp = "Classic", name = "Temple of Ahn'Qiraj",                   code = "AQ40",  bosses = 9,  size = 40 },
+    { exp = "Classic", name = "Ruins of Ahn'Qiraj",                    code = "AQ20",  bosses = 6,  size = 20 },
+    { exp = "Classic", name = "Blackwing Lair",                        code = "BWL",   bosses = 8,  size = 40 },
+    { exp = "Classic", name = "Molten Core",                           code = "MC",    bosses = 10, size = 40 },
+    { exp = "Classic", name = "Zul'Gurub",                             code = "ZG",    bosses = 10, size = 20 },
 }
 B.VARIANTS = {}
 for _, raid in ipairs(B.RAIDS) do

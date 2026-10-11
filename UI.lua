@@ -51,7 +51,12 @@ local function InstanceInit(a, b)
             text = "Clear", notCheckable = 1,
             func = function() wipe(db.instances); CloseDropDownMenus(); B:RefreshAll() end,
         }, level)
+        local exp
         for i, raid in ipairs(B.RAIDS) do
+            if raid.exp and raid.exp ~= exp then
+                exp = raid.exp
+                UIDropDownMenu_AddButton({ text = exp, isTitle = 1, notCheckable = 1 }, level)
+            end
             UIDropDownMenu_AddButton({
                 text = raid.name, hasArrow = 1, notCheckable = 1, value = i,
             }, level)

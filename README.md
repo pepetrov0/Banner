@@ -15,7 +15,7 @@ Banner is a recruitment ("LFM") broadcasting addon for **World of Warcraft: Wrat
 
 ## Features
 
-- **Every WotLK raid built in** — 9 raids with 10/25 (and heroic, where available) variants, from Naxxramas to Ruby Sanctum
+- **Every raid built in** — Classic, Burning Crusade and Wrath of the Lich King, from Molten Core to Ruby Sanctum, with the right sizes (and heroic variants where they exist)
 - **Single instance + custom text** — pick one raid and add any text after its name (e.g. `ICC25 8/12 fresh`)
 - **Class & spec picker** — 31 specs across 10 classes, with role quick-select (Tanks, Healers, Melee, Ranged) and per-class toggles
 - **Any target** — broadcast to every joined chat channel, plus Say and Yell
