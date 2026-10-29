@@ -2,7 +2,10 @@
 Banner = Banner or {}
 local B = Banner
 
-local PREFIX      = "|cff33ff99Banner|r: "
+local TAG = "|cff33ff99Banner|r"
+local ADDON_VERSION = GetAddOnMetadata("Banner", "Version") or "?"
+local function Log(msg) DEFAULT_CHAT_FRAME:AddMessage(TAG .. " " .. msg) end
+local function LogLoad(hint) Log("v" .. ADDON_VERSION .. " loaded." .. (hint and (" " .. hint) or "")) end
 local MAX_LEN     = 250   -- chat limit is 255 bytes; keep a little headroom
 local QUEUE_DELAY = 1.5   -- seconds between individual messages (avoids server throttling)
 local MIN_INTERVAL = 10
@@ -44,7 +47,7 @@ local function CopyDefaults(src, dst)
 end
 
 function B:Print(msg)
-    DEFAULT_CHAT_FRAME:AddMessage(PREFIX .. msg)
+    DEFAULT_CHAT_FRAME:AddMessage(TAG .. " " .. msg)
 end
 
 ------------------------------------------------------------------------
@@ -302,6 +305,7 @@ driver:SetScript("OnEvent", function(self, event, arg1)
         CopyDefaults(DEFAULTS, BannerDB)
         B.db = BannerDB
         B:NormalizeInstances()
+        LogLoad("Type /banner to configure.")
     elseif event == "RAID_ROSTER_UPDATE" or event == "PARTY_MEMBERS_CHANGED" then
         if B.running and B:IsFull() then
             B:Print("Group is full - broadcasting stopped.")
